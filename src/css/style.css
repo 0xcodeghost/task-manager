@@ -339,3 +339,63 @@ select {
         justify-content: flex-end;
     }
 }
+
+
+/* =========================
+   8. Edit Mode
+========================= */
+
+.task-item.editing {
+    flex-wrap: wrap;
+    border-color: var(--accent-color);
+}
+
+.task-item.editing:hover {
+    transform: none;
+}
+
+.edit-input,
+.edit-category,
+.edit-date {
+    background-color: var(--input-bg);
+    color: var(--text-color);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 10px 12px;
+    outline: none;
+    transition: border-color 0.3s ease;
+}
+
+.edit-input:focus,
+.edit-category:focus,
+.edit-date:focus {
+    border-color: var(--accent-color);
+}
+
+.edit-input {
+    flex: 1 1 100%;
+}
+
+.edit-category,
+.edit-date {
+    flex: 1 1 140px;
+}
+
+.edit-date {
+    color-scheme: dark;
+}
+
+.save-btn {
+    border-color: var(--accent-color);
+    color: var(--accent-color);
+}
+
+.save-btn:hover {
+    background-color: var(--accent-color);
+    color: #fff;
+}
+
+.cancel-btn:hover {
+    color: var(--text-color);
+    border-color: var(--text-color);
+}

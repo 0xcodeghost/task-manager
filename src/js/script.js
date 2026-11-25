@@ -3,6 +3,7 @@
 // =========================
 
 let tasks = [];
+let editingId = null;
 
 // =========================
 // 2. DOM Elements
@@ -71,6 +72,11 @@ function formatDate(dateString) {
 
 function createTaskElement(task) {
 
+    // If this task is being edited, show the edit form instead
+    if (task.id === editingId) {
+        return createEditElement(task);
+    }
+
     const li = document.createElement("li");
     li.className = "task-item";
     li.dataset.id = task.id;
@@ -134,6 +140,61 @@ function createTaskElement(task) {
     return li;
 }
 
+function createEditElement(task) {
+
+    const li = document.createElement("li");
+    li.className = "task-item editing";
+    li.dataset.id = task.id;
+
+    // Text input
+    const textInput = document.createElement("input");
+    textInput.type = "text";
+    textInput.className = "edit-input";
+    textInput.value = task.text;
+    textInput.maxLength = 100;
+
+    // Category dropdown (copies the options from the Add form)
+    const categoryEdit = document.createElement("select");
+    categoryEdit.className = "edit-category";
+
+    Array.from(categorySelect.options).forEach(function (option) {
+        const newOption = document.createElement("option");
+        newOption.value = option.value;
+        newOption.textContent = option.textContent;
+        newOption.selected = option.value === task.category;
+        categoryEdit.appendChild(newOption);
+    });
+
+    // Date input
+    const dateEdit = document.createElement("input");
+    dateEdit.type = "date";
+    dateEdit.className = "edit-date";
+    dateEdit.value = task.dueDate;
+
+    // Buttons
+    const actions = document.createElement("div");
+    actions.className = "task-actions";
+
+    const saveBtn = document.createElement("button");
+    saveBtn.className = "icon-btn save-btn";
+    saveBtn.textContent = "Save";
+
+    const cancelBtn = document.createElement("button");
+    cancelBtn.className = "icon-btn cancel-btn";
+    cancelBtn.textContent = "Cancel";
+
+    actions.appendChild(saveBtn);
+    actions.appendChild(cancelBtn);
+
+    // Put everything together
+    li.appendChild(textInput);
+    li.appendChild(categoryEdit);
+    li.appendChild(dateEdit);
+    li.appendChild(actions);
+
+    return li;
+}
+
 function renderTasks() {
 
     // 1. Clear the list
@@ -158,7 +219,7 @@ function renderTasks() {
 taskForm.addEventListener("submit", addTask);
 
 // =========================
-// 6. Complete & Delete
+// 6. Complete, Delete & Edit
 // =========================
 
 function toggleTask(id) {
@@ -179,10 +240,48 @@ function deleteTask(id) {
     renderTasks();
 }
 
-// One listener for the whole task list (event delegation)
+function startEdit(id) {
+    editingId = id;
+    renderTasks();
+
+    // Put the cursor in the text box
+    const input = taskList.querySelector(".edit-input");
+
+    if (input) {
+        input.focus();
+    }
+}
+
+function cancelEdit() {
+    editingId = null;
+    renderTasks();
+}
+
+function saveEdit(id, taskItem) {
+    const textInput = taskItem.querySelector(".edit-input");
+    const newText = textInput.value.trim();
+
+    // Don't allow an empty task
+    if (newText === "") {
+        textInput.focus();
+        return;
+    }
+
+    const task = tasks.find(function (item) {
+        return item.id === id;
+    });
+
+    task.text = newText;
+    task.category = taskItem.querySelector(".edit-category").value;
+    task.dueDate = taskItem.querySelector(".edit-date").value;
+
+    editingId = null;
+    renderTasks();
+}
+
+// One listener for all clicks inside the list (event delegation)
 taskList.addEventListener("click", function (event) {
 
-    // Which task was clicked?
     const taskItem = event.target.closest(".task-item");
 
     if (!taskItem) {
@@ -190,14 +289,48 @@ taskList.addEventListener("click", function (event) {
     }
 
     const id = Number(taskItem.dataset.id);
+    const target = event.target;
 
-    // What exactly was clicked?
-    if (event.target.classList.contains("task-check")) {
+    if (target.classList.contains("task-check")) {
         toggleTask(id);
     }
 
-    if (event.target.classList.contains("delete-btn")) {
-        deleteTask(id);
+    if (target.classList.contains("delete-btn")) {
+        if (confirm("Delete this task?")) {
+            deleteTask(id);
+        }
+    }
+
+    if (target.classList.contains("edit-btn")) {
+        startEdit(id);
+    }
+
+    if (target.classList.contains("save-btn")) {
+        saveEdit(id, taskItem);
+    }
+
+    if (target.classList.contains("cancel-btn")) {
+        cancelEdit();
+    }
+});
+
+// Keyboard shortcuts while editing: Enter = save, Escape = cancel
+taskList.addEventListener("keydown", function (event) {
+
+    const taskItem = event.target.closest(".task-item");
+
+    if (!taskItem || !taskItem.classList.contains("editing")) {
+        return;
+    }
+
+    const id = Number(taskItem.dataset.id);
+
+    if (event.key === "Enter") {
+        saveEdit(id, taskItem);
+    }
+
+    if (event.key === "Escape") {
+        cancelEdit();
     }
 });
 
