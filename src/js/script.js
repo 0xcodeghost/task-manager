@@ -157,4 +157,48 @@ function renderTasks() {
 
 taskForm.addEventListener("submit", addTask);
 
+// =========================
+// 6. Complete & Delete
+// =========================
+
+function toggleTask(id) {
+    const task = tasks.find(function (item) {
+        return item.id === id;
+    });
+
+    task.completed = !task.completed;
+
+    renderTasks();
+}
+
+function deleteTask(id) {
+    tasks = tasks.filter(function (item) {
+        return item.id !== id;
+    });
+
+    renderTasks();
+}
+
+// One listener for the whole task list (event delegation)
+taskList.addEventListener("click", function (event) {
+
+    // Which task was clicked?
+    const taskItem = event.target.closest(".task-item");
+
+    if (!taskItem) {
+        return;
+    }
+
+    const id = Number(taskItem.dataset.id);
+
+    // What exactly was clicked?
+    if (event.target.classList.contains("task-check")) {
+        toggleTask(id);
+    }
+
+    if (event.target.classList.contains("delete-btn")) {
+        deleteTask(id);
+    }
+});
+
 renderTasks();
