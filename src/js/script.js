@@ -4,6 +4,8 @@
 
 let tasks = [];
 let editingId = null;
+let currentFilter = "all";
+let searchQuery = "";
 
 // =========================
 // 2. DOM Elements
@@ -16,6 +18,8 @@ const dueDateInput = document.getElementById("due-date");
 const taskList = document.getElementById("task-list");
 const emptyState = document.getElementById("empty-state");
 const taskCount = document.getElementById("task-count");
+const searchInput = document.getElementById("search-input");
+const filterButtons = document.querySelectorAll(".filter-btn");
 
 // =========================
 // 3. Add Task
@@ -212,20 +216,45 @@ function createEditElement(task) {
     return li;
 }
 
+function getVisibleTasks() {
+    return tasks.filter(function (task) {
+
+        // 1. Filter by status
+        if (currentFilter === "active" && task.completed) {
+            return false;
+        }
+
+        if (currentFilter === "completed" && !task.completed) {
+            return false;
+        }
+
+        // 2. Filter by search text
+        return task.text.toLowerCase().includes(searchQuery.toLowerCase());
+    });
+}
+
 function renderTasks() {
+
+    const visibleTasks = getVisibleTasks();
 
     // 1. Clear the list
     taskList.innerHTML = "";
 
-    // 2. Draw every task
-    tasks.forEach(function (task) {
+    // 2. Draw only the visible tasks
+    visibleTasks.forEach(function (task) {
         taskList.appendChild(createTaskElement(task));
     });
 
-    // 3. Show the empty message only when there are no tasks
-    emptyState.hidden = tasks.length > 0;
+    // 3. Empty message (different text for different situations)
+    if (tasks.length === 0) {
+        emptyState.textContent = "No tasks yet. Add your first task above.";
+    } else {
+        emptyState.textContent = "No tasks match your search or filter.";
+    }
 
-    // 4. Update the counter
+    emptyState.hidden = visibleTasks.length > 0;
+
+    // 4. Counter (counts ALL active tasks, not only visible ones)
     const activeCount = tasks.filter(function (task) {
         return !task.completed;
     }).length;
@@ -349,6 +378,31 @@ taskList.addEventListener("keydown", function (event) {
     if (event.key === "Escape") {
         cancelEdit();
     }
+});
+
+// =========================
+// 7. Filters & Search
+// =========================
+
+filterButtons.forEach(function (button) {
+    button.addEventListener("click", function () {
+
+        currentFilter = button.dataset.filter;
+
+        // Move the blue "active" style to the clicked button
+        filterButtons.forEach(function (btn) {
+            btn.classList.remove("active");
+        });
+
+        button.classList.add("active");
+
+        renderTasks();
+    });
+});
+
+searchInput.addEventListener("input", function () {
+    searchQuery = searchInput.value.trim();
+    renderTasks();
 });
 
 renderTasks();
