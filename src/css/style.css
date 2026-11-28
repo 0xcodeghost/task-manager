@@ -399,3 +399,8 @@ select {
     color: var(--text-color);
     border-color: var(--text-color);
 }
+
+.task-date.overdue {
+    color: var(--danger-color);
+    font-weight: 600;
+}

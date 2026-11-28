@@ -64,6 +64,15 @@ function formatDate(dateString) {
         year: "numeric"
     });
 }
+function getToday() {
+    const now = new Date();
+
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, "0");
+    const day = String(now.getDate()).padStart(2, "0");
+
+    return year + "-" + month + "-" + day;
+}
 
 
 // =========================
@@ -107,10 +116,18 @@ function createTaskElement(task) {
     badge.textContent = task.category;
     meta.appendChild(badge);
 
-    if (task.dueDate) {
+        if (task.dueDate) {
         const date = document.createElement("span");
         date.className = "task-date";
-        date.textContent = "📅 " + formatDate(task.dueDate);
+
+        // Overdue = due date is before today AND task is not completed
+        if (task.dueDate < getToday() && !task.completed) {
+            date.classList.add("overdue");
+            date.textContent = "⚠️ Overdue · " + formatDate(task.dueDate);
+        } else {
+            date.textContent = "📅 " + formatDate(task.dueDate);
+        }
+
         meta.appendChild(date);
     }
 
